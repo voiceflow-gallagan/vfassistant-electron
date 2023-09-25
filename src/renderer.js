@@ -61,7 +61,6 @@ ipcRenderer.on('search-results', (event, results) => {
     results.messages[0].replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, '')
   )
   response.innerHTML = htmlString
-  //delay = results.delay * 1000
   responseContainer.classList.add('fade-in')
 
   let lineHeight = 5
@@ -148,14 +147,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
       search.blur()
       fadeOutIn(placeholder, 'Looking for an answer...')
 
-      // Reset input field and adjust window size
+      // Reset the search input
       e.target.value = ''
+
       // Send the question to the main process for searching
       ipcRenderer.send('perform-search', question)
     }
   })
   search.blur()
-  log.info('Spotlight loaded')
+  log.info('Voiceflow Spotlight loaded')
 })
 
 function fadeOutIn(element, newText) {
@@ -190,7 +190,6 @@ const placeholderTexts = [
   // Add as many as you want...
 ]
 
-// Function to get random placeholder
 function getRandomPlaceholder() {
   return placeholderTexts[Math.floor(Math.random() * placeholderTexts.length)]
 }

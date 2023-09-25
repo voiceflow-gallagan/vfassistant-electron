@@ -17,12 +17,10 @@ const machineId = require('node-machine-id')
 
 // Load the config.json file
 const config = require('./config.json')
+const { projectID, versionID, width, delay, shortcut, openURL } = config
 
 // Get apiKey from .env
 const apiKey = process.env.VOICEFLOW_API_KEY
-
-// Parse config.json
-const { projectID, versionID, width, delay, shortcut, openURL } = config
 
 // Get the machine ID
 const userID = machineId.machineIdSync()
@@ -31,14 +29,11 @@ const username = os.userInfo().username
 // Optional, initialize the logger for any renderer process
 log.initialize({ preload: true })
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
 let win, newWin
-
-//saveSettings(config)
 
 ipcMain.on('anim-resize-window', (event, arg) => {
   let start = Date.now()
@@ -79,7 +74,7 @@ if (openURL == 'preview') {
       height: 600,
       frame: true,
       alwaysOnTop: true,
-      title: 'Tico',
+      title: 'Voiceflow Spotlight',
       skipTaskbar: true,
       autoHideMenuBar: true,
       darkTheme: true,
@@ -115,7 +110,7 @@ ipcMain.on('show-context-menu', (event) => {
 ipcMain.on('perform-search', async (event, question) => {
   try {
     const response = await axios.post(
-      `https://general-runtime.voiceflow.com/state/user/${userID}/interact?verbose=true`,
+      `https://general-runtime.voiceflow.com/state/user/${userID}/interact`,
       {
         action: {
           type: 'text',
@@ -136,9 +131,9 @@ ipcMain.on('perform-search', async (event, question) => {
         },
       }
     )
-    let isEnding = response.data.trace.some((item) => item.type === 'end')
-    const messages = extractMessages(response.data.trace)
-    //const delay = response.data.state.variables.number
+    let isEnding = response.data.some((item) => item.type === 'end')
+    const messages = extractMessages(response.data)
+
     win.webContents.send('search-results', { messages, delay })
     if (isEnding) {
       saveTranscript()
@@ -251,26 +246,6 @@ ipcMain.on('animation-finished', () => {
   win.hide()
 })
 
-async function saveSettings(config) {
-  try {
-    const response = await axios.patch(
-      `https://general-runtime.voiceflow.com/state/user/${userID}/variables`,
-      {
-        responseFormat: config.responseFormat,
-      },
-      {
-        headers: {
-          Authorization: apiKey,
-          'Content-Type': 'application/json',
-          VersionID: versionID,
-        },
-      }
-    )
-  } catch (error) {
-    console.error(error)
-  }
-}
-
 async function saveTranscript() {
   if (projectID) {
     if (!username || username == '' || username == undefined) {
@@ -283,7 +258,7 @@ async function saveTranscript() {
         browser: 'Electron',
         device: 'desktop',
         os: os.type() || 'Unknown',
-        sessionID: userID, //session,
+        sessionID: userID,
         unread: true,
         versionID: versionID,
         projectID: projectID,
