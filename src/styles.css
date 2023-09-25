@@ -1,0 +1,75 @@
+body {
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+  background-color: rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  transition: opacity 0.5s;
+}
+
+#search-container {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  position: relative; /* Added */
+}
+
+input[type="text"] {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: transparent;
+  font-style: italic;
+  font-size: 18px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#search {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  height: 50%;
+  transition: opacity 0.5s;
+  font-size: inherit;
+  width: 100%;
+  color: #ffffffa0;
+}
+
+#search.fade-in {
+  opacity: 1;
+  border-bottom: 1px solid #ffffff37;
+}
+
+#placeholder {
+  position: absolute;
+  pointer-events: none;
+  transition: color 0.3s;
+  font-style: italic;
+  font-size: 18px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#search:not(:focus) + #placeholder {
+  color: #ffffffa0;
+}
+
+#search:focus + #placeholder {
+  color: transparent;
+}
+
+#response-container {
+  padding: 0px 15px 15px 15px;
+  transition: padding 0.5s ease-in-out;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#response-container.fade-in {
+  color: #ffffffcb;
+  opacity: 1;
+  padding: 0px 15px 15px 15px;
+}
+
+#response a {
+  color: white;
+}

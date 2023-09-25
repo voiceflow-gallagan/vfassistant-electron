@@ -1,0 +1,42 @@
+{
+  "name": "vfassistant-electron-spotlight",
+  "productName": "vf-spotlight",
+  "version": "1.0.0",
+  "description": "Spotlight Demo App using Voiceflow Dialog API",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [
+    "electron",
+    "voiceflow",
+    "dialog API"
+  ],
+  "author": "NiKo | Voiceflow",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "electron-log": "^5.0.0-beta.25",
+    "electron-squirrel-startup": "^1.0.0",
+    "html-tokenize": "^2.0.1",
+    "jquery": "^3.7.1",
+    "marked": "^8.0.0",
+    "node-machine-id": "^1.1.12",
+    "os": "^0.1.2"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.4.2",
+    "@electron-forge/maker-deb": "^6.4.2",
+    "@electron-forge/maker-rpm": "^6.4.2",
+    "@electron-forge/maker-squirrel": "^6.4.2",
+    "@electron-forge/maker-zip": "^6.4.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.4.2",
+    "electron": "^26.2.2"
+  }
+}
