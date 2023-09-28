@@ -6,9 +6,6 @@ const responseContainer = document.getElementById('response-container')
 const response = document.getElementById('response')
 const placeholder = document.getElementById('placeholder')
 const config = require('./config.json')
-const cheerio = require('cheerio')
-const jsdom = require('jsdom')
-const { JSDOM } = jsdom
 
 let { width, delay } = config
 const $ = require('jquery')
@@ -50,10 +47,11 @@ ipcRenderer.on('reload-window', () => {
 
 ipcRenderer.on('search-results', (event, results) => {
   responseContainer.classList.remove('fade-in')
-  log.info('ORI:', results.messages[0])
+
   const htmlString = marked.parse(
     results.messages[0].replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, '')
   )
+
   response.innerHTML = htmlString
 
   responseContainer.classList.add('fade-in')
@@ -64,8 +62,6 @@ ipcRenderer.on('search-results', (event, results) => {
   let lines = Math.ceil(htmlString.length / charactersPerLine)
   let newHeight =
     document.body.getBoundingClientRect().height + lines * lineHeight + 20
-
-  //response.innerHTML = ''
 
   function processNode(node) {
     if (
