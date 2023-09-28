@@ -24,9 +24,9 @@
     "dotenv": "^16.3.1",
     "electron-log": "^5.0.0-beta.25",
     "electron-squirrel-startup": "^1.0.0",
-    "html-tokenize": "^2.0.1",
     "jquery": "^3.7.1",
-    "marked": "^8.0.0",
+    "jsdom": "^22.1.0",
+    "marked": "^9.0.3",
     "node-machine-id": "^1.1.12",
     "os": "^0.1.2"
   },

@@ -6,22 +6,16 @@ const responseContainer = document.getElementById('response-container')
 const response = document.getElementById('response')
 const placeholder = document.getElementById('placeholder')
 const config = require('./config.json')
-const tokenize = require('html-tokenize')
 const cheerio = require('cheerio')
+const jsdom = require('jsdom')
+const { JSDOM } = jsdom
+
 let { width, delay } = config
 const $ = require('jquery')
 
 response.addEventListener('contextmenu', (e) => {
   e.preventDefault()
   ipcRenderer.send('show-context-menu')
-})
-
-search.addEventListener('blur', function () {
-  if (this.value) {
-    placeholder.textContent = ''
-  } else {
-    placeholder.textContent = getRandomPlaceholder()
-  }
 })
 
 ipcRenderer.on('focus-search-input', () => {
@@ -56,51 +50,50 @@ ipcRenderer.on('reload-window', () => {
 
 ipcRenderer.on('search-results', (event, results) => {
   responseContainer.classList.remove('fade-in')
-  log.info(results.messages[0])
-  let htmlString = marked.parse(
+  log.info('ORI:', results.messages[0])
+  const htmlString = marked.parse(
     results.messages[0].replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/, '')
   )
   response.innerHTML = htmlString
+
   responseContainer.classList.add('fade-in')
 
   let lineHeight = 5
   let charWidth = 6
   let charactersPerLine = Math.floor(width / charWidth)
-  let lines = Math.ceil(results.messages[0].length / charactersPerLine)
+  let lines = Math.ceil(htmlString.length / charactersPerLine)
   let newHeight =
     document.body.getBoundingClientRect().height + lines * lineHeight + 20
 
-  response.innerHTML = ''
+  //response.innerHTML = ''
 
-  // Load the HTML string into Cheerio
-  const html = cheerio.load(htmlString)
-
-  // Traverse each text node
-  html('*')
-    .contents()
-    .each(function () {
-      if (this.type === 'text') {
-        // Split the text into words and wrap each word in a span
-        const words = this.data.split(' ').map((word, i, arr) => {
-          // If the next word starts with a <, don't add a space after this word
-          const space =
-            i < arr.length - 1 && arr[i + 1].startsWith(' <') ? '' : ' '
-          return `<span style="display: none">${word}</span>${space}`
-        })
-
-        // Replace the text node with the spans
-        html(this).replaceWith(words.join(''))
-      } else if (this.type === 'tag' && this.name === 'a') {
-        // Add the event listener to the link
-        html(this).attr(
-          'onclick',
-          `event.preventDefault(); ipcRenderer.send('open-link', this.href)`
-        )
+  function processNode(node) {
+    if (
+      node.nodeType === Node.TEXT_NODE &&
+      !['code', 'strong', 'a'].some((tag) => node.parentNode.closest(tag))
+    ) {
+      const words = node.textContent
+        .split(' ')
+        .map((word) => `<span style="display: none">${word}</span> `)
+      const newNode = document.createElement('span')
+      newNode.innerHTML = words.join('')
+      node.parentNode.replaceChild(newNode, node)
+    } else if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      ['code', 'strong', 'a'].includes(node.tagName.toLowerCase())
+    ) {
+      const newNode = document.createElement('span')
+      newNode.style.display = 'none'
+      newNode.innerHTML = node.outerHTML
+      node.parentNode.replaceChild(newNode, node)
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        processNode(node.childNodes[i])
       }
-    })
+    }
+  }
 
-  // Insert the HTML content into the DOM
-  response.innerHTML = html('body').html()
+  processNode(response)
 
   // Get all the spans in the response
   const spans = $('#response span')
@@ -111,7 +104,7 @@ ipcRenderer.on('search-results', (event, results) => {
   ipcRenderer.send('anim-resize-window', {
     targetWidth: width,
     targetHeight: newHeight,
-    duration: totalAnimationTime * 0.95,
+    duration: totalAnimationTime * 0.9,
   })
 
   // Animate each word
@@ -120,6 +113,16 @@ ipcRenderer.on('search-results', (event, results) => {
       $(span).fadeIn(delay)
     }, index * (delay / 10))
   })
+  // Wait for the animations to end before revealing the non-treated tags
+  setTimeout(() => {
+    $('code, strong, span').css('display', '')
+    // Re-attach the onclick event handler to the 'a' tags
+    $('a').attr(
+      'onclick',
+      `event.preventDefault(); ipcRenderer.send('open-link', this.href)`
+    )
+  }, totalAnimationTime)
+
   // Wait for the animations to end before adding 'fade-in' class and focusing the search
   setTimeout(() => {
     search.classList.add('fade-in')
@@ -128,6 +131,14 @@ ipcRenderer.on('search-results', (event, results) => {
 })
 
 document.addEventListener('DOMContentLoaded', (event) => {
+  search.addEventListener('blur', function () {
+    if (this.value) {
+      placeholder.textContent = ''
+    } else {
+      placeholder.textContent = getRandomPlaceholder()
+    }
+  })
+
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Control' && event.key !== 'Meta' && event.key !== 'c') {
       if (!search.isEqualNode(document.activeElement)) {
@@ -135,6 +146,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
       }
     }
   })
+
   document.querySelector('#search').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const question = e.target.value
@@ -154,8 +166,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
       ipcRenderer.send('perform-search', question)
     }
   })
-  search.blur()
   log.info('Voiceflow Spotlight loaded')
+  placeholder.textContent = getRandomPlaceholder()
 })
 
 function fadeOutIn(element, newText) {
